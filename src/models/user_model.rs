@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
+use bson::oid::ObjectId;
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct UserModel {
     #[serde(rename = "_id")]
-    pub id: Option<String>,
+    pub id: ObjectId,
     pub login: String,
     pub password: String,
     pub first_name: Option<String>,

@@ -3,6 +3,7 @@ use mongodb::Database;
 use crate::models::user_model::UserModel;
 use crate::config::pb::user_service_server::UserService;
 use crate::config::pb::{User, UserId};
+use bson::oid::ObjectId;
 
 pub struct ArtieUserService {
     pub db: Database,
@@ -12,10 +13,10 @@ pub struct ArtieUserService {
 impl UserService for ArtieUserService {
     async fn add_user(&self, request: Request<User>) -> Result<Response<UserId>, Status> {
         let user = request.into_inner();
-        let collection = self.db.collection("User");
+        let collection = self.db.collection::<UserModel>("User");
 
         let new_user = UserModel {
-            id: None,
+            id: ObjectId::new(),
             login: user.login,
             password: user.password,
             first_name: Some(user.first_name),
@@ -26,10 +27,8 @@ impl UserService for ArtieUserService {
             role: user.role,
         };
 
-        let insert_result = collection.insert_one(new_user).await.unwrap();
-        let id = insert_result.inserted_id.as_str().unwrap().to_string();
-
-        Ok(Response::new(UserId { id }))
+        collection.insert_one(&new_user).await.unwrap();
+        Ok(Response::new(UserId{id: new_user.id.to_string()}))
     }
 }
 
