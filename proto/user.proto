@@ -35,4 +35,5 @@ message UserList {
 
 service UserService {
   rpc AddUser(User) returns (UserId);
+  rpc LoginUser(UserLogin) returns (User);
 }
