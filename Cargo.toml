@@ -2,6 +2,7 @@
 name = "user_service"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.60"
 
 [dependencies]
 tonic = "0.12.1"
@@ -35,3 +36,7 @@ rustflags = ["--cfg", "tokio_unstable"]
 [[bin]]
 name = "user_service"
 path = "src/main.rs"
+
+[lib]
+name = "user_service"
+path = "src/lib.rs"
