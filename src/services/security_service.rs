@@ -1,7 +1,7 @@
 use ring::pbkdf2;
 use std::num::NonZeroU32;
 
-const ITERATIONS: u32 = 10000;
+const ITERATIONS: u32 = 1000;
 
 fn from_hex(hex: &str) -> Vec<u8> {
     hex::decode(hex).expect("Decoding hex string failed")

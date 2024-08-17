@@ -49,10 +49,10 @@ impl UserService for ArtieUserService {
                 id: result.id.to_string(),
                 login: result.login,
                 password: result.password,
-                first_name: result.first_name.unwrap(),
-                last_name: result.last_name.unwrap(),
+                first_name: result.first_name.unwrap_or("".to_string()),
+                last_name: result.last_name.unwrap_or("".to_string()),
                 email: result.email,
-                institution_id: result.institution_id.unwrap(),
+                institution_id: result.institution_id.unwrap_or("".to_string()),
                 active: result.active,
                 role: result.role,
             }))
