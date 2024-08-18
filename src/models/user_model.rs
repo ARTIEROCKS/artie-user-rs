@@ -8,9 +8,12 @@ pub struct UserModel {
     pub id: ObjectId,
     pub login: String,
     pub password: String,
+    #[serde(rename = "fistName")]
     pub first_name: Option<String>,
+    #[serde(rename = "lastName")]
     pub last_name: Option<String>,
     pub email: String,
+    #[serde(rename = "institutionId")]
     pub institution_id: Option<String>,
     #[serde(deserialize_with = "deserialize_boolean")]
     pub active: bool,

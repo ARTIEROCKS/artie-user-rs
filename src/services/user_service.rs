@@ -13,6 +13,9 @@ pub struct ArtieUserService {
 
 #[tonic::async_trait]
 impl UserService for ArtieUserService {
+    /**
+     * Add a new user
+     */
     async fn add_user(&self, request: Request<User>) -> Result<Response<UserId>, Status> {
         let user = request.into_inner();
         let collection = self.db.collection::<UserModel>("User");
@@ -33,6 +36,9 @@ impl UserService for ArtieUserService {
         Ok(Response::new(UserId{id: new_user.id.to_string()}))
     }
 
+    /**
+     * Update a user
+     */
     async fn login_user(&self, request: Request<UserLogin>) -> Result<Response<User>, Status> {
         let user = request.into_inner();
         let collection = self.db.collection::<UserModel>("User");
@@ -63,9 +69,41 @@ impl UserService for ArtieUserService {
         }
     }
 
+    /**
+     * Get user by id
+     */
     async fn get_all_users(&self, _: Request<()>) -> Result<Response<UserList>, Status> {
         let collection = self.db.collection("User");
         let mut cursor = collection.find(doc! {}).await.unwrap();
+
+        let mut users = vec![];
+        while let Some(user_doc) = cursor.try_next().await.unwrap() {
+            let user: UserModel = mongodb::bson::from_document(user_doc).unwrap();
+            users.push(User {
+                id: user.id.to_string(),
+                login: user.login,
+                password: user.password,
+                first_name: user.first_name.unwrap_or_default(),
+                last_name: user.last_name.unwrap_or_default(),
+                email: user.email,
+                institution_id: user.institution_id.unwrap_or_default(),
+                active: user.active,
+                role: user.role,
+            });
+        }
+
+        Ok(Response::new(UserList { users }))
+    }
+
+    /**
+     * Get all users by institution id
+     */
+    async fn get_users_by_institution_id(&self, request: Request<UserId>) -> Result<Response<UserList>, Status> {
+        let institution_id = request.into_inner().id;
+        let collection = self.db.collection("User");
+
+        let filter = doc! { "institutionId": institution_id };
+        let mut cursor = collection.find(filter).await.unwrap();
 
         let mut users = vec![];
         while let Some(user_doc) = cursor.try_next().await.unwrap() {

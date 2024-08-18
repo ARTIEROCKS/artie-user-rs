@@ -40,4 +40,5 @@ service UserService {
   rpc AddUser(User) returns (UserId);
   rpc LoginUser(UserLogin) returns (User);
   rpc GetAllUsers(google.protobuf.Empty) returns (UserList);
+  rpc GetUsersByInstitutionId(UserId) returns (UserList);
 }
