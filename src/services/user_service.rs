@@ -162,6 +162,32 @@ impl UserService for ArtieUserService {
 
         Ok(Response::new(()))
     }
+
+    /**
+     * Update a user
+     */
+    async fn update_user(&self, request: Request<User>) -> Result<Response<()>, Status> {
+        let user = request.into_inner();
+        let collection: mongodb::Collection<bson::Document> = self.db.collection("User");
+
+        let filter = doc! { "_id": ObjectId::parse_str(user.id.clone()).unwrap() };
+        let update = doc! {
+            "$set": {
+                "login": user.login,
+                "password": user.password,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "institution_id": user.institution_id,
+                "active": user.active,
+                "role": user.role,
+            }
+        };
+
+        collection.update_one(filter, update).await.unwrap();
+
+        Ok(Response::new(()))
+    }
 }
 
 impl ArtieUserService {

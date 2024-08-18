@@ -43,4 +43,5 @@ service UserService {
   rpc GetUsersByInstitutionId(UserId) returns (UserList);
   rpc GetUserById(UserId) returns (User);
   rpc DeleteUser(UserId) returns (google.protobuf.Empty);
+  rpc UpdateUser(User) returns (google.protobuf.Empty);
 }
