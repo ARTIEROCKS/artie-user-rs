@@ -149,6 +149,19 @@ impl UserService for ArtieUserService {
             Err(Status::not_found("User not found"))
         }
     }
+
+    /**
+     * Delete a user
+     */
+    async fn delete_user(&self, request: Request<UserId>) -> Result<Response<()>, Status> {
+        let id = ObjectId::parse_str(request.into_inner().id).unwrap();
+        let collection: mongodb::Collection<bson::Document>  = self.db.collection("User");
+        
+        let filter = doc! { "_id": id };
+        collection.delete_one(filter).await.unwrap();
+
+        Ok(Response::new(()))
+    }
 }
 
 impl ArtieUserService {
