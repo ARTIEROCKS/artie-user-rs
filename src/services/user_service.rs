@@ -123,6 +123,32 @@ impl UserService for ArtieUserService {
 
         Ok(Response::new(UserList { users }))
     }
+
+    /**
+     * Get user by id
+     */
+    async fn get_user_by_id(&self, request: Request<UserId>) -> Result<Response<User>, Status> {
+        let id = ObjectId::parse_str(request.into_inner().id).unwrap();
+        let collection = self.db.collection("User");
+
+        let filter = doc! { "_id": id };
+        if let Some(user_doc) = collection.find_one(filter).await.unwrap() {
+            let user: UserModel = mongodb::bson::from_document(user_doc).unwrap();
+            Ok(Response::new(User {
+                id: user.id.to_string(),
+                login: user.login,
+                password: user.password,
+                first_name: user.first_name.unwrap_or_default(),
+                last_name: user.last_name.unwrap_or_default(),
+                email: user.email,
+                institution_id: user.institution_id.unwrap_or_default(),
+                active: user.active,
+                role: user.role,
+            }))
+        } else {
+            Err(Status::not_found("User not found"))
+        }
+    }
 }
 
 impl ArtieUserService {
