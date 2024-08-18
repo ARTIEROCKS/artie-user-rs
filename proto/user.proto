@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package user;
 
+import "google/protobuf/empty.proto";
+
+
 message User {
   string id = 1;
   string login = 2;
@@ -36,4 +39,5 @@ message UserList {
 service UserService {
   rpc AddUser(User) returns (UserId);
   rpc LoginUser(UserLogin) returns (User);
+  rpc GetAllUsers(google.protobuf.Empty) returns (UserList);
 }

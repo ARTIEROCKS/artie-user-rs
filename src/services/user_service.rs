@@ -1,6 +1,7 @@
+use futures::TryStreamExt;
 use tonic::{Request, Response, Status};
 use mongodb::{Database, bson::{doc, oid::ObjectId}};
-use crate::models::user_model::UserModel;
+use crate::{config::pb::UserList, models::user_model::UserModel};
 use crate::config::pb::user_service_server::UserService;
 use crate::config::pb::{User, UserId, UserLogin};
 use crate::services::security_service::validate_password;
@@ -60,6 +61,29 @@ impl UserService for ArtieUserService {
         } else {
             return Err(Status::not_found("User not found"));
         }
+    }
+
+    async fn get_all_users(&self, _: Request<()>) -> Result<Response<UserList>, Status> {
+        let collection = self.db.collection("User");
+        let mut cursor = collection.find(doc! {}).await.unwrap();
+
+        let mut users = vec![];
+        while let Some(user_doc) = cursor.try_next().await.unwrap() {
+            let user: UserModel = mongodb::bson::from_document(user_doc).unwrap();
+            users.push(User {
+                id: user.id.to_string(),
+                login: user.login,
+                password: user.password,
+                first_name: user.first_name.unwrap_or_default(),
+                last_name: user.last_name.unwrap_or_default(),
+                email: user.email,
+                institution_id: user.institution_id.unwrap_or_default(),
+                active: user.active,
+                role: user.role,
+            });
+        }
+
+        Ok(Response::new(UserList { users }))
     }
 }
 
