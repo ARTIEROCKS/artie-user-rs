@@ -7,10 +7,10 @@ rust-version = "1.60"
 [dependencies]
 tonic = "0.12.1"
 tonic-reflection = "0.12.1"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.39.3", features = ["full"] }
 mongodb = "3.0.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { version = "1.0.208", features = ["derive"] }
+serde_json = "1.0.125"
 futures = "0.3"
 log = "0.4"
 dotenv = "0.15"
@@ -19,6 +19,8 @@ prost = "0.13.1"
 bson = "2.11.0"
 ring = "0.17.8"
 hex = "0.4"
+rand = "0.8.5"
+num-bigint = "0.4.2"
 
 [build-dependencies]
 tonic-build = "0.12.1"

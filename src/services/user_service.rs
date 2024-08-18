@@ -7,6 +7,8 @@ use crate::config::pb::{User, UserId, UserLogin};
 use crate::services::security_service::validate_password;
 use crate::config::error::ArtieError;
 
+use super::security_service::generate_password_hash;
+
 pub struct ArtieUserService {
     pub db: Database,
 }
@@ -23,7 +25,7 @@ impl UserService for ArtieUserService {
         let new_user = UserModel {
             id: ObjectId::new(),
             login: user.login,
-            password: user.password,
+            password: generate_password_hash(user.password.as_str()),
             first_name: Some(user.first_name),
             last_name:  Some(user.last_name),
             email: user.email,
