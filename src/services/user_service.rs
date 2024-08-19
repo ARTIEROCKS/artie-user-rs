@@ -6,6 +6,7 @@ use crate::config::pb::user_service_server::UserService;
 use crate::config::pb::{User, UserId, UserLogin};
 use crate::services::security_service::validate_password;
 use crate::config::error::ArtieError;
+use log::{info, error};
 
 use super::security_service::generate_password_hash;
 
@@ -21,6 +22,9 @@ impl UserService for ArtieUserService {
     async fn add_user(&self, request: Request<User>) -> Result<Response<UserId>, Status> {
         let user = request.into_inner();
         let collection = self.db.collection::<UserModel>("User");
+
+        info!("Adding a new user: login: {}, first_name: {}, last_name: {}, email: {}, institution_id: {}, active: {}, role: {}", 
+            &user.login, &user.first_name, &user.last_name, &user.email, &user.institution_id, &user.active, &user.role);
 
         let (salt, password) = generate_password_hash(user.password.as_str());
 
@@ -39,6 +43,8 @@ impl UserService for ArtieUserService {
         new_user.set_password(&password, &salt);
 
         collection.insert_one(&new_user).await.map_err(|err| ArtieError::MongoDBError(err.into()))?;
+
+        info!("User added successfully");
         Ok(Response::new(UserId{id: new_user.id.to_string()}))
     }
 
@@ -47,16 +53,23 @@ impl UserService for ArtieUserService {
      */
     async fn login_user(&self, request: Request<UserLogin>) -> Result<Response<User>, Status> {
         let user = request.into_inner();
+        let user_login = user.login.clone();
+
         let collection = self.db.collection::<UserModel>("User");
         let filter = doc! {"login": user.login};
+
+        info!("Login user: login: {}", &user_login);
 
         // Getting the user from the database
         if let Some(result) = collection.find_one(filter).await.map_err(|err| ArtieError::MongoDBError(err.into()))? {
             
             let is_valid = validate_password(&user.password, &result.get_passw_only(), &result.get_salt());
             if !is_valid {
+                error!("Invalid login and password: login: {}", &user_login);
                 return Err(Status::unauthenticated("Invalid login and password"));
             }
+
+            info!("User logged in successfully: login: {}", &user_login);
 
             Ok(Response::new(User{
                 id: result.id.to_string(),
@@ -69,8 +82,8 @@ impl UserService for ArtieUserService {
                 active: result.active,
                 role: result.role,
             }))
-
         } else {
+            error!("User not found: login: {}", &user_login);
             return Err(Status::not_found("User not found"));
         }
     }
@@ -81,6 +94,8 @@ impl UserService for ArtieUserService {
     async fn get_all_users(&self, _: Request<()>) -> Result<Response<UserList>, Status> {
         let collection = self.db.collection("User");
         let mut cursor = collection.find(doc! {}).await.unwrap();
+
+        info!("Getting all users");
 
         let mut users = vec![];
         while let Some(user_doc) = cursor.try_next().await.unwrap() {
@@ -97,6 +112,7 @@ impl UserService for ArtieUserService {
                 role: user.role,
             });
         }
+        info!("Users retrieved successfully");
 
         Ok(Response::new(UserList { users }))
     }
@@ -107,6 +123,8 @@ impl UserService for ArtieUserService {
     async fn get_users_by_institution_id(&self, request: Request<UserId>) -> Result<Response<UserList>, Status> {
         let institution_id = request.into_inner().id;
         let collection = self.db.collection("User");
+
+        info!("Getting all users by institution id: {}", &institution_id);
 
         let filter = doc! { "institutionId": institution_id };
         let mut cursor = collection.find(filter).await.unwrap();
@@ -127,6 +145,7 @@ impl UserService for ArtieUserService {
             });
         }
 
+        info!("Users retrieved successfully");
         Ok(Response::new(UserList { users }))
     }
 
@@ -137,9 +156,13 @@ impl UserService for ArtieUserService {
         let id = ObjectId::parse_str(request.into_inner().id).unwrap();
         let collection = self.db.collection("User");
 
+        info!("Getting user by id: {}", &id);
+
         let filter = doc! { "_id": id };
         if let Some(user_doc) = collection.find_one(filter).await.unwrap() {
             let user: UserModel = mongodb::bson::from_document(user_doc).unwrap();
+
+            info!("User retrieved successfully");
             Ok(Response::new(User {
                 id: user.id.to_string(),
                 login: user.login,
@@ -152,6 +175,7 @@ impl UserService for ArtieUserService {
                 role: user.role,
             }))
         } else {
+            error!("User not found: id: {}", &id);
             Err(Status::not_found("User not found"))
         }
     }
@@ -163,8 +187,12 @@ impl UserService for ArtieUserService {
         let id = ObjectId::parse_str(request.into_inner().id).unwrap();
         let collection: mongodb::Collection<bson::Document>  = self.db.collection("User");
         
+        info!("Deleting user by id: {}", &id);
+
         let filter = doc! { "_id": id };
         collection.delete_one(filter).await.unwrap();
+
+        info!("User deleted successfully");
 
         Ok(Response::new(()))
     }
@@ -175,6 +203,8 @@ impl UserService for ArtieUserService {
     async fn update_user(&self, request: Request<User>) -> Result<Response<()>, Status> {
         let user = request.into_inner();
         let collection: mongodb::Collection<bson::Document> = self.db.collection("User");
+
+        info!("Updating user by id: {}", &user.id);
 
         let filter = doc! { "_id": ObjectId::parse_str(user.id.clone()).unwrap() };
         let update = doc! {
@@ -191,6 +221,8 @@ impl UserService for ArtieUserService {
         };
 
         collection.update_one(filter, update).await.unwrap();
+
+        info!("User updated successfully");
 
         Ok(Response::new(()))
     }
