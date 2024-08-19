@@ -35,4 +35,7 @@ impl UserModel {
             "".to_string()
         }
     }
+    pub fn set_password(&mut self, password: &str, salt: &str) {
+        self.password = format!("{}{}", password, salt);
+    }
 }

@@ -29,7 +29,7 @@ pub fn to_hex(array: &[u8]) -> String {
     }
 }
 
-pub fn generate_password_hash(password: &str) -> String {
+pub fn generate_password_hash(password: &str) -> (String, String) {
 
     let salt = get_salt();
     let mut hash = vec![0u8; 64]; // 64 bytes = 512 bits
@@ -42,7 +42,7 @@ pub fn generate_password_hash(password: &str) -> String {
         &mut hash,
     );
 
-    to_hex(&hash)
+    (to_hex(&salt), to_hex(&hash))
 }
 
 fn from_hex(hex: &str) -> Vec<u8> {

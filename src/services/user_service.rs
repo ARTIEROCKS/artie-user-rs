@@ -22,10 +22,12 @@ impl UserService for ArtieUserService {
         let user = request.into_inner();
         let collection = self.db.collection::<UserModel>("User");
 
-        let new_user = UserModel {
+        let (salt, password) = generate_password_hash(user.password.as_str());
+
+        let mut new_user = UserModel {
             id: ObjectId::new(),
             login: user.login,
-            password: generate_password_hash(user.password.as_str()),
+            password: "".to_string(),
             first_name: Some(user.first_name),
             last_name:  Some(user.last_name),
             email: user.email,
@@ -33,6 +35,8 @@ impl UserService for ArtieUserService {
             active: user.active,
             role: user.role,
         };
+
+        new_user.set_password(&password, &salt);
 
         collection.insert_one(&new_user).await.map_err(|err| ArtieError::MongoDBError(err.into()))?;
         Ok(Response::new(UserId{id: new_user.id.to_string()}))
