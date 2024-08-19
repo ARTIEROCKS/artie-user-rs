@@ -13,16 +13,17 @@ COPY Cargo.toml Cargo.lock ./
 # Create an empty directory for build dependencies
 RUN mkdir src
 RUN echo "fn main() {}" > src/main.rs
+RUN echo "fn main() {}" > src/lib.rs
 
 # Compile the dependencies
-RUN cargo build --release
+RUN cargo build --release --bin user_service
 RUN rm -r src
 
 # Copy the rest of the project files
 COPY . .
 
 # Compile the project
-RUN cargo build --release
+RUN cargo build --release --bin user_service
 
 # Create a new stage for a runtime image with necessary libraries
 FROM ubuntu:20.04
@@ -37,7 +38,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /usr/local/bin
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /usr/src/artie-conversation/target/release/user_service .
+COPY --from=builder /usr/src/user_service/target/release/user_service .
 
 # Expose the port where the gRPC service will be listening
 EXPOSE 50051
