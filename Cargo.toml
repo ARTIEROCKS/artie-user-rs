@@ -1,15 +1,26 @@
 [package]
-name = "grpc_service"
+name = "user_service"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
+rust-version = "1.60"
 
 [dependencies]
 tonic = "0.12.1"
-tokio = { version = "1", features = ["full"] }
+tonic-reflection = "0.12.1"
+tokio = { version = "1.39.3", features = ["full"] }
 mongodb = "3.0.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { version = "1.0.208", features = ["derive"] }
+serde_json = "1.0.125"
 futures = "0.3"
+log = "0.4"
+dotenv = "0.15"
+env_logger = "0.11.3"
+prost = "0.13.1"
+bson = "2.11.0"
+ring = "0.17.8"
+hex = "0.4"
+rand = "0.8.5"
+num-bigint = "0.4.2"
 
 [build-dependencies]
 tonic-build = "0.12.1"
@@ -17,13 +28,17 @@ tonic-build = "0.12.1"
 [package.metadata]
 version = "0.1.0"
 authors = ["Luis Eduardo Imbernón <imbernon@gmail.com>"]
-description = "Un servicio gRPC en Rust que interactúa con MongoDB"
-repository = "https://github.com/tu-usuario/grpc_service"
+description = "ARTIE user gRPC service"
+repository = "https://github.com/ARTIEROCKS/artie-user-rs"
 license = "MIT"
 
 [build]
 rustflags = ["--cfg", "tokio_unstable"]
 
 [[bin]]
-name = "grpc_service"
+name = "user_service"
 path = "src/main.rs"
+
+[lib]
+name = "user_service"
+path = "src/lib.rs"
